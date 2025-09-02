@@ -19,10 +19,14 @@ def execute(cmd):
     cmd = cmd.strip()
     if not cmd:
         return
-    
-    output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT)
-     
-    return output.decode()
+
+    try:
+        output = subprocess.check_output(shlex.split(cmd), text=True, stderr=True)
+        return output
+    except subprocess.CalledProcessError as e:
+        print(f"")
+    except FileNotFoundError as e:
+        print(f"The cmd executable wasn't found to be executed: {e}") 
 
 
 class NetCat:
@@ -65,7 +69,11 @@ class NetCat:
                 if response: #you could prob make this loop exit on buffer = exit
                     print(response)
                     buffer = input('> ')
-                    self.socket.send(buffer.encode())
+                    try:
+                        self.socket.send(buffer.encode())
+                        print('Sent res!')###############
+                    except Exception as e:
+                        print(f'{e}')
 
         except KeyboardInterrupt:
             print('user termed conn')
@@ -149,7 +157,8 @@ if __name__ == '__main__':
     if args.listen:
         buffer = ''
     else:
-        buffer = sys.stdin.read()
+        buffer = '' #sys.stdin.read()
+        #robust this
 
     nc = NetCat(args, buffer.encode())
     nc.run()

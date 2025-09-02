@@ -121,6 +121,7 @@ class NetCat:
                 try:
                     client_socket.send(b'BHP: #> ')
                     while recv_len:
+                        print('cmd recv')
                         data = client_socket.recv(64)
                         recv_len = len(data)
                         cmd_buffer += data

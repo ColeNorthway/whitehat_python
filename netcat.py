@@ -42,7 +42,11 @@ class NetCat:
 
             
     def send(self):
-        self.socket.connect((self.args.target, self.args.port))
+        try:
+            self.socket.connect((self.args.target, self.args.port))
+            print('Connected!')
+        except Exception as e:
+            print(f'{e}')
         if self.buffer:
             self.socket.send(self.buffer)
 
@@ -70,8 +74,12 @@ class NetCat:
 
 
     def listen(self):
-        self.socket.bind((self.args.target, self.args.port))
-        self.socket.listen(5)
+        try:
+            self.socket.bind((self.args.target, self.args.port))
+            self.socket.listen(5)
+            print('Successfully listening')
+        except Exception as e:
+            print(f'{e}')
 
         while True:
             client_socket, _ = self.socket.accept()

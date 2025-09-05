@@ -21,13 +21,12 @@ def execute(cmd):
         return
 
     try:
-        output = subprocess.check_output(shlex.split(cmd), text=True, stderr=True)
+        output = subprocess.check_output(shlex.split(cmd), text=True, stderr=subprocess.STDOUT)
         return output
+    except OSError as e:
+        return 'The command you ran is not an actual executable'
     except subprocess.CalledProcessError as e:
-        print(f"")
-    except FileNotFoundError as e:
-        print(f"The cmd executable wasn't found to be executed: {e}") 
-
+        return 'There was an error with the command you ran'
 
 class NetCat:
     def __init__(self, args, buffer=None):
@@ -117,14 +116,22 @@ class NetCat:
         elif self.args.command:
             cmd_buffer = b''
             recv_len = 1
+            client_socket.send(b'Shell Connected') #send confirmation of connection
             while True:
                 try:
-                    client_socket.send(b'BHP: #> ')
                     while recv_len:
-                        print('cmd recv')
-                        data = client_socket.recv(64)
-                        recv_len = len(data)
-                        cmd_buffer += data
+                        cmd_buffer = client_socket.recv(4096)
+                        recv_len = len(cmd_buffer)
+                        if recv_len < 4096:
+                            break
+                        
+                    #read cmd from client, exit on exit
+                    if cmd_buffer == b'exit':
+                        client_socket.send(b'Connect Killed')
+                        self.socket.close()
+                        sys.exit()
+                        break
+                        
                     response = execute(cmd_buffer.decode())
 
                     if response:
